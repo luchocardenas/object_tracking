@@ -64,6 +64,11 @@ install(DIRECTORY config/
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
+install(
+  DIRECTORY launch rviz2
+  DESTINATION share/${PROJECT_NAME}
+)
+
 install(TARGETS 
   config_loader_lib
   sensor_data_publisher 
