@@ -14,6 +14,9 @@ find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(Boost REQUIRED)
+find_package(visualization_msgs REQUIRED)
+
 
 # Include directories
 include_directories(
@@ -37,7 +40,7 @@ add_executable(transform_detections src/transform_detections_node.cpp)
 ament_target_dependencies(transform_detections rclcpp ament_index_cpp geometry_msgs tf2 tf2_geometry_msgs)
 
 add_executable(object_tracker src/object_tracker_node.cpp)
-ament_target_dependencies(object_tracker rclcpp geometry_msgs tf2 tf2_geometry_msgs)
+ament_target_dependencies(object_tracker rclcpp geometry_msgs tf2 tf2_geometry_msgs Boost visualization_msgs)
 
 add_executable(test_tf2 src/test_tf2.cpp)
 ament_target_dependencies(test_tf2 rclcpp tf2)

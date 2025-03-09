@@ -30,6 +30,9 @@ void ObjectTracker::init()
   // Publish tracked objects as PoseArray
   tracking_publisher_ = this->create_publisher<geometry_msgs::msg::PoseArray>(
     config_.get_tracked_objects_topic(), 10);
+  
+  // Markers to publish the object's IDs
+  marker_publisher_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/tracked_object_ids", 10);
 
   timer_ = this->create_wall_timer(100ms, std::bind(&ObjectTracker::publish_tracked_objects, this));
 
@@ -130,15 +133,41 @@ void ObjectTracker::transformed_det_callback(const geometry_msgs::msg::PoseArray
 
 void ObjectTracker::publish_tracked_objects() 
 {
+  // Publish tracked objects as PoseArray
   geometry_msgs::msg::PoseArray msg;
   msg.header.stamp = this->now();
   msg.header.frame_id = "map";
 
+  // MarkerArray to visualize each object's ID
+  visualization_msgs::msg::MarkerArray marker_array;
+  
+  // Clear all previous markers
+  visualization_msgs::msg::Marker delete_marker;
+  delete_marker.action = visualization_msgs::msg::Marker::DELETEALL;
+  marker_array.markers.push_back(delete_marker);
+
   for (const auto& obj : tracked_objects_) {
     msg.poses.push_back(obj.second.pose.pose);
+
+    visualization_msgs::msg::Marker text_marker;
+    text_marker.header.frame_id = "map";
+    text_marker.header.stamp = this->now();
+    text_marker.ns = "object_ids";
+    text_marker.id = obj.second.id;
+    text_marker.type = visualization_msgs::msg::Marker::TEXT_VIEW_FACING;
+    text_marker.action = visualization_msgs::msg::Marker::ADD;
+    text_marker.pose.position = obj.second.pose.pose.position;
+    text_marker.scale.z = 0.3;
+    text_marker.color.r = 1.0;
+    text_marker.color.g = 1.0;
+    text_marker.color.b = 1.0;
+    text_marker.color.a = 1.0;
+    text_marker.text = std::to_string(obj.second.id);
+    marker_array.markers.push_back(text_marker);
   }
 
   tracking_publisher_->publish(msg);
+  marker_publisher_->publish(marker_array);
 }
 
 int main(int argc, char** argv) {
