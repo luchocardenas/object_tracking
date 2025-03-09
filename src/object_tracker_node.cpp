@@ -78,31 +78,32 @@ void ObjectTracker::transformed_det_callback(const geometry_msgs::msg::PoseArray
       // Update existing object
       TrackedObject& obj = tracked_objects_[existing_id];
 
-      // TODO: try with moving average filter because it can have history of previous poses
-      // Apply exponential smoothing filter
-      obj.pose.pose.position.x = 0.8 * obj.pose.pose.position.x + 0.2 * pose.position.x;
-      obj.pose.pose.position.y = 0.8 * obj.pose.pose.position.y + 0.2 * pose.position.y;
+      // Apply moving average filter
+      obj.pose.pose.position.x = obj.x_filter.update(pose.position.x);
+      obj.pose.pose.position.y = obj.y_filter.update(pose.position.y);
 
-      // Correct 180 flips (sometimes it also flips 90)
-      //? Maybe do not change the orientation and just keep the 1st one?
+      // Correct 180 flips
       double prev_yaw = tf2::getYaw(obj.pose.pose.orientation);
       double new_yaw = tf2::getYaw(pose.orientation);
       double stable_yaw = stabilize_yaw(prev_yaw, new_yaw);
+      
+      // Apply exponential filter for yaw to reduce disturbance from 90 degrees jump
+      double filtered_yaw = 0.8 * prev_yaw + 0.2 * stable_yaw;
       tf2::Quaternion quaternion;
-      quaternion.setRPY(0, 0, stable_yaw);
+      quaternion.setRPY(0, 0, filtered_yaw);
       obj.pose.pose.orientation = tf2::toMsg(quaternion);
 
       obj.last_seen = now;
+
       // Increase certainty when the object is detected in the current time
       obj.certainty = std::min(1.0, obj.certainty + certainty_delta); 
     } else {
-      // Add new object
+      // Add new object (start with 0.5 certainty)
       TrackedObject new_obj;
       new_obj.id = assignID();
       new_obj.pose.pose = pose;
       new_obj.pose.header.stamp = now;
       new_obj.last_seen = now;
-      // New objects start with 0.5 certainty
       new_obj.certainty = 0.5; 
       tracked_objects_[new_obj.id] = new_obj;
     }
@@ -118,11 +119,11 @@ void ObjectTracker::transformed_det_callback(const geometry_msgs::msg::PoseArray
   // Remove objects that have not been detected for longer period (timeout_duration)
   for (auto it = tracked_objects_.begin(); it != tracked_objects_.end();) {
     if ((now - it->second.last_seen).seconds() > timeout_duration) {
-        RCLCPP_INFO(this->get_logger(), "Object '%d' removed due to timeout.", it->second.id);
-        it = tracked_objects_.erase(it);
+      RCLCPP_INFO(this->get_logger(), "Object '%d' removed due to timeout.", it->second.id);
+      it = tracked_objects_.erase(it);
     }
     else {
-        ++it;
+      ++it;
     }
   }
 }
@@ -134,7 +135,7 @@ void ObjectTracker::publish_tracked_objects()
   msg.header.frame_id = "map";
 
   for (const auto& obj : tracked_objects_) {
-      msg.poses.push_back(obj.second.pose.pose);
+    msg.poses.push_back(obj.second.pose.pose);
   }
 
   tracking_publisher_->publish(msg);

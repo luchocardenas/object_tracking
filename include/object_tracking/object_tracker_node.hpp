@@ -5,14 +5,37 @@
 #include "object_tracking/config_loader.hpp"
 #include <thread>
 #include <chrono>
+#include <deque>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+
+class MovingAverageFilter {
+  public:
+    MovingAverageFilter(size_t window_size) : window_size_(window_size) {}
+  
+    double update(double new_value) {
+      if (values_.size() >= window_size_) {
+        sum_ -= values_.front();
+        values_.pop_front();
+      }
+      values_.push_back(new_value);
+      sum_ += new_value;
+      return sum_ / values_.size();
+    }
+  
+  private:
+    size_t window_size_;
+    std::deque<double> values_;
+    double sum_ = 0.0;
+};
 
 struct TrackedObject {
   int id;
   geometry_msgs::msg::PoseStamped pose;
   rclcpp::Time last_seen;
   double certainty;
+  MovingAverageFilter x_filter{10};
+  MovingAverageFilter y_filter{10};
 };
 
 class ObjectTracker : public rclcpp::Node
