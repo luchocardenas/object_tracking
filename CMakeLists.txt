@@ -20,6 +20,16 @@ include_directories(
   include
 )
 
+add_library(config_loader_lib
+  src/config_loader.cpp
+)
+
+target_include_directories(config_loader_lib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+ament_target_dependencies(config_loader_lib rclcpp yaml-cpp)
+
 add_executable(sensor_data_publisher src/sensor_data_publisher_node.cpp)
 ament_target_dependencies(sensor_data_publisher rclcpp ament_index_cpp geometry_msgs tf2 tf2_ros)
 
@@ -30,7 +40,8 @@ add_executable(test_tf2 src/test_tf2.cpp)
 ament_target_dependencies(test_tf2 rclcpp tf2)
 
 # Link yaml-cpp explicitly
-target_link_libraries(transform_detections yaml-cpp)
+target_link_libraries(config_loader_lib yaml-cpp)
+target_link_libraries(transform_detections yaml-cpp config_loader_lib)
 
 # Install the data directory to the package's install space
 install(DIRECTORY data/
@@ -47,6 +58,7 @@ install(DIRECTORY config/
 )
 
 install(TARGETS 
+  config_loader_lib
   sensor_data_publisher 
   transform_detections
   test_tf2
