@@ -115,7 +115,7 @@ void ObjectTracker::transformed_det_callback(const geometry_msgs::msg::PoseArray
   // Reduce certainty if the object is not detected in the current time
   for (auto& [id, obj] : tracked_objects_) {
     if (obj.last_seen != now) {  
-      obj.certainty -= std::max(0.0, obj.certainty - certainty_delta); ;
+      obj.certainty = std::max(0.0, obj.certainty - certainty_delta); ;
     }
   }
 
@@ -162,7 +162,11 @@ void ObjectTracker::publish_tracked_objects()
     text_marker.color.g = 1.0;
     text_marker.color.b = 1.0;
     text_marker.color.a = 1.0;
-    text_marker.text = std::to_string(obj.second.id);
+
+    std::ostringstream oss; 
+    oss << std::fixed << std::setprecision(2) << obj.second.certainty;
+    text_marker.text = std::to_string(obj.second.id) + "\n" + oss.str();
+    
     marker_array.markers.push_back(text_marker);
   }
 

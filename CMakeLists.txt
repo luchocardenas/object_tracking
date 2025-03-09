@@ -17,7 +17,6 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(Boost REQUIRED)
 find_package(visualization_msgs REQUIRED)
 
-
 # Include directories
 include_directories(
   include
@@ -41,9 +40,6 @@ ament_target_dependencies(transform_detections rclcpp ament_index_cpp geometry_m
 
 add_executable(object_tracker src/object_tracker_node.cpp)
 ament_target_dependencies(object_tracker rclcpp geometry_msgs tf2 tf2_geometry_msgs Boost visualization_msgs)
-
-add_executable(test_tf2 src/test_tf2.cpp)
-ament_target_dependencies(test_tf2 rclcpp tf2)
 
 # Link yaml-cpp explicitly
 target_link_libraries(config_loader_lib yaml-cpp)
@@ -74,7 +70,6 @@ install(TARGETS
   sensor_data_publisher 
   transform_detections
   object_tracker
-  test_tf2
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
