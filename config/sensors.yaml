@@ -1,0 +1,2 @@
+sensor_data_topic: "detections"
+sensor_transformed_topic: "transformed_detections"
