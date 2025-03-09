@@ -36,12 +36,16 @@ ament_target_dependencies(sensor_data_publisher rclcpp ament_index_cpp geometry_
 add_executable(transform_detections src/transform_detections_node.cpp)
 ament_target_dependencies(transform_detections rclcpp ament_index_cpp geometry_msgs tf2 tf2_geometry_msgs)
 
+add_executable(object_tracker src/object_tracker_node.cpp)
+ament_target_dependencies(object_tracker rclcpp geometry_msgs tf2 tf2_geometry_msgs)
+
 add_executable(test_tf2 src/test_tf2.cpp)
 ament_target_dependencies(test_tf2 rclcpp tf2)
 
 # Link yaml-cpp explicitly
 target_link_libraries(config_loader_lib yaml-cpp)
 target_link_libraries(transform_detections yaml-cpp config_loader_lib)
+target_link_libraries(object_tracker yaml-cpp config_loader_lib)
 
 # Install the data directory to the package's install space
 install(DIRECTORY data/
@@ -61,6 +65,7 @@ install(TARGETS
   config_loader_lib
   sensor_data_publisher 
   transform_detections
+  object_tracker
   test_tf2
   DESTINATION lib/${PROJECT_NAME})
 

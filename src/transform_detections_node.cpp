@@ -1,5 +1,4 @@
 #include "object_tracking/transform_detections_node.hpp"
-
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <tf2/LinearMath/Quaternion.h>
@@ -17,7 +16,7 @@ void TransformDetections::init()
   if (!config_.load_config(shared_from_this())) { 
       return;
   } 
-  
+
   // Initialize subscribers
   robot_poses_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
     "robot_poses", 10,
